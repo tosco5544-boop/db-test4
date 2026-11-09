@@ -15,7 +15,7 @@ fallthrough = true
 [[d1_databases]]
 binding = "DB"                    # コード内で env.DB として使う
 database_name = "my-auth-db"
-database_id = "ここにD1のIDを入れる"  # D1 の画面に出ている ID
+database_id = "374f7acc-c47c-446f-bf71-8a9d7ddeb0dc"  # D1 の画面に出ている ID
 
 # ログイン用の秘密の文字列 JWT_SECRET は、ここには書きません。
 # ダッシュボードの Worker →「設定」→「変数とシークレット」で「シークレット」として追加します。

@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>全国マーケティング旅</title>
+<meta name="description" content="マーケティングの仕事で全国47都道府県をめぐる旅の記録です。赤は訪れた県、青は次に向かう県です。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@700&family=Zen+Kaku+Gothic+New:wght@400;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<!--STYLE-->
+</head>
+<body>
+
+<header class="site-head">
+  <div class="inner">
+    <a class="logo" href="./">MARKETING JOURNEY</a>
+    <nav><a href="#map">地図</a><a href="#list">一覧</a></nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="inner">
+      <div>
+        <p class="eyebrow">47 PREFECTURES</p>
+        <h1>全国マーケティング旅</h1>
+        <p class="lead">マーケティングの仕事で全国47都道府県をめぐる旅の記録です。赤は訪れた県、青は次に向かう県です。</p>
+        <p class="next-line" id="nextLine" hidden></p>
+      </div>
+      <div class="tally" aria-live="polite">
+        <span class="big" id="count">0</span><span class="of"> / 47</span>
+        <div id="rate">達成率 0%</div>
+      </div>
+      <div class="progress" aria-hidden="true"><span id="bar"></span></div>
+    </div>
+  </section>
+
+  <section class="section" id="map">
+    <div class="inner">
+      <h2>都道府県マップ</h2>
+      <p class="note" id="updated">最終更新：—</p>
+      <div class="map-tools">
+        <div class="legend" id="legend"><span><i></i>読み込み中</span></div>
+        <button type="button" class="btn-ghost" id="zoom">地図を拡大</button>
+      </div>
+      <div class="map-scroll" id="mapScroll">
+        <div class="map-box" id="mapBox"><div class="map-status">地図を読み込んでいます…</div></div>
+      </div>
+      <p class="lead lead-sp">マーケティングの仕事で全国47都道府県をめぐる旅の記録です。赤は訪れた県、青は次に向かう県です。</p>
+    </div>
+  </section>
+
+  <section class="section" id="list">
+    <div class="inner">
+      <h2>地方別一覧</h2>
+      <p class="note">地方ごとの達成状況です。</p>
+      <div class="regions" id="regions"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <div class="inner">
+    <span>© 全国マーケティング旅</span>
+    <span>地図データ：amCharts</span>
+  </div>
+</footer>
+
+<!--MAP_SCRIPT-->
+<script>
+/* LP：データベースの色を地図・一覧・達成数に反映します（閲覧のみ）。 */
+(function () {
+  var J = window.JapanMap, MD = window.MapData;
+
+  // 凡例・一覧の色つきラベル
+  function pillStyle(s) {
+    if (!s || s.code === "none") return "";
+    return "background:" + s.color + ";border-color:" + s.color + ";color:" + (J.isDark(s.color) ? "#fff" : "#1d2024");
+  }
+
+  MD.load().then(function (d) {
+    var sm = MD.statusMap(d);
+
+    // 達成数・次の目的地・更新日
+    var visited = 0, next = [];
+    for (var c = 1; c <= 47; c++) {
+      var s = sm[d.states[c]];
+      if (s && s.counts_as_visited) visited++;
+      if (d.states[c] === "next") next.push(J.NAMES[c - 1]);
+    }
+    document.getElementById("count").textContent = visited;
+    var rate = Math.round(visited / 47 * 100);
+    document.getElementById("rate").textContent = "達成率 " + rate + "%";
+    requestAnimationFrame(function () { document.getElementById("bar").style.width = rate + "%"; });
+    var nl = document.getElementById("nextLine");
+    if (next.length) {
+      nl.textContent = "次の目的地：" + next.join("・");
+      if (sm.next) nl.style.color = sm.next.color;
+      nl.hidden = false;
+    }
+    document.getElementById("updated").textContent = "最終更新：" + MD.formatUpdated(d.updated);
+
+    // 凡例
+    var lg = document.getElementById("legend");
+    lg.textContent = "";
+    d.statuses.slice().sort(function (a, b) { return a.sort_order - b.sort_order; }).forEach(function (s) {
+      var span = document.createElement("span"), i = document.createElement("i");
+      if (s.code !== "none") { i.style.background = s.color; i.style.borderColor = s.color; }
+      span.appendChild(i); span.appendChild(document.createTextNode(s.label));
+      lg.appendChild(span);
+    });
+
+    // 地方別一覧
+    var wrap = document.getElementById("regions");
+    wrap.textContent = "";
+    J.REGIONS.forEach(function (r) {
+      var n = 0, div = document.createElement("div"), h = document.createElement("h3"), ul = document.createElement("ul");
+      div.className = "region";
+      for (var c = r[1]; c <= r[2]; c++) {
+        var s = sm[d.states[c]];
+        if (s && s.counts_as_visited) n++;
+        var li = document.createElement("li"), sp = document.createElement("span");
+        sp.className = "pill"; sp.textContent = J.NAMES[c - 1];
+        sp.setAttribute("style", pillStyle(s));
+        if (s && s.code !== "none") sp.title = s.label;
+        li.appendChild(sp); ul.appendChild(li);
+      }
+      h.textContent = r[0];
+      var cnt = document.createElement("span"); cnt.textContent = n + " / " + (r[2] - r[1] + 1); h.appendChild(cnt);
+      div.appendChild(h); div.appendChild(ul); wrap.appendChild(div);
+    });
+
+    // 地図
+    var box = document.getElementById("mapBox");
+    J.create(box, { colors: MD.colors(d) }).catch(function () {
+      box.innerHTML = '<div class="map-status">地図を読み込めませんでした。インターネット接続を確認して再読み込みしてください。</div>';
+    });
+  });
+
+  // 拡大（スマホで県名を読みやすく）
+  var scroll = document.getElementById("mapScroll"), zb = document.getElementById("zoom");
+  zb.addEventListener("click", function () {
+    var z = scroll.classList.toggle("is-zoom");
+    zb.textContent = z ? "全体を表示" : "地図を拡大";
+    if (z) { scroll.scrollLeft = scroll.scrollWidth * 0.35; scroll.scrollTop = scroll.scrollHeight * 0.3; }
+  });
+})();
+</script>
+</body>
+</html>

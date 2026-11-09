@@ -1,6 +1,6 @@
 # 全国マーケティング旅（Cloudflare Workers）
 # name は Cloudflare ダッシュボードにある Worker の名前と同じにしてください。
-name = "db-test3"
+name = "db-test4"
 main = "src/index.js"
 compatibility_date = "2026-10-01"
 

@@ -1,0 +1,21 @@
+# 全国マーケティング旅（Cloudflare Workers）
+# name は Cloudflare ダッシュボードにある Worker の名前と同じにしてください。
+name = "db-test3"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+# 画面ファイル（トップ・ログイン・編集）
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+# データベース（npx wrangler d1 create my-auth-db で表示された database_id を入れる）
+[[d1_databases]]
+binding = "DB" # コード内で env.DB としてアクセスできるようになります
+database_name = "my-auth-db"
+database_id = "xxxx-xxxx-xxxx-xxxx" # 発行されたID
+
+# ログイン用の秘密の文字列 JWT_SECRET は、ここには書かずに
+#   本番：npx wrangler secret put JWT_SECRET
+#   ローカル：.dev.vars ファイル
+# で設定します。
